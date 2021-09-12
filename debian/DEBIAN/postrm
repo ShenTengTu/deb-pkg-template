@@ -1,0 +1,58 @@
+#! /bin/bash
+
+echo "[$(basename -- "$0")] $*"
+version=$2
+case "$1" in
+    remove) # <- prerm remove
+        # delete the package (keep the configuration)
+        exit 0
+        # [Success] -> Exist || postrm purge
+        # [Failed] -> Exit with error
+    ;;
+    purge) # <- postrm remove
+        # remove package configuration
+        exit 0
+        # [Success] -> Exist
+        # [Failed] -> Exit with error
+    ;;
+    upgrade) # <- preinst upgrade <old-version>
+        # `version` is new version
+        exit 0
+        # [Success] -> postinst configure <old-version>
+        # [Failed] -> postrm failed-upgrade <new-version>
+    ;;
+    disappear) # <- Disappear
+        # The package all of whose files have been overwritten during the installation
+        # and which aren’t required for dependencies
+        overwriter=$2
+        overwriter_version=$3
+        exit 0
+        # [Success] -> Exist
+        # [Failed] -> Exist with error
+    ;;
+    failed-upgrade) # <- postrm upgrade <new-version>
+        # `version` is new version
+        exit 0
+        # [Success] -> postinst configure <old-version>
+        # [Failed] -> preinst abort-upgrade <new-version>
+    ;;
+    abort-install) # <-  preinst install [old-version]
+        if [ -n "$version" ]
+        then
+            # `version` is previously removed version
+            #  but configuration exists (not purged)
+            exit 0
+        else
+            # The package has not been installed
+            exit 0
+        fi
+        # [Success] -> Exit with error
+        # [Failed] -> Exit with error
+    ;;
+    abort-upgrade) # <- preinst upgrade <old-version> || preinst abort-upgrade <new-version>
+       # `version` is previously installed version
+        exit 0
+        # [Success] -> postinst abort-upgrade <new-version>
+        # [Failed] -> Exit with error
+    ;;
+esac

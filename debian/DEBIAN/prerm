@@ -1,0 +1,37 @@
+#! /bin/bash
+
+echo "[$(basename -- "$0")] $*"
+version=$2
+case "$1" in
+    remove) # <- Remove
+        if [ -n "$2" ] # removal of conflicting package
+        then
+            package=$3
+            version=$4
+        else # removal of package
+            exit 0
+        fi
+        # [Success] -> postrm remove
+        # [Failed] -> postinst abort-remove
+    ;;
+    upgrade) # <- Upgrade
+        # `version` is new version
+        exit 0
+        # [Success] -> preinst upgrade <old-version>
+        # [Failed] -> prerm failed-upgrade <old-version>
+    ;;
+    deconfigure) # <- Install
+         # If `--auto-deconfigure` is specified, for each package to be deconfigured due to Breaks
+        [ -n "$2" ] && package=$3 && version=$4
+        # If any packages depended on a conflicting package being removed
+        [ -n "$5" ] && conflicting_package=$6 && conflicting_package_version=$7
+        # [Success] -> Exit
+        # [Failed] -> postinst abort-deconfigure
+    ;;
+    failed-upgrade) # <- prerm upgrade <new-version>
+        # `version` is previously installed version
+        exit 0
+        # [Success] -> preinst upgrade <old-version>
+        # [Failed] -> postint abort-upgrade <new-version>
+    ;;
+esac

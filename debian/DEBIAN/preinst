@@ -1,0 +1,38 @@
+#! /bin/bash
+ 
+echo "[$(basename -- "$0")] $*"
+version=$2
+case "$1" in
+    install) # <- Install
+        if [ -n "$version" ]
+        then
+            # `version` is previously removed version
+            #  but configuration exists (not purged)
+            exit 0
+            # [Success] -> postinst configure <old-version>
+            # [Failed] -> postrm abort-install <old-version>
+        else
+            # The package has not been installed
+            exit 0
+            # [Success] -> postinst configure
+            # [Failed] -> postrm abort-install
+        fi
+    ;;
+    upgrade)  # <- prerm upgrade <new-version>
+        # Upgrade to new version
+        # `version` is previously installed version
+        exit 0
+        # [Success] -> postrm upgrade <new-version>
+        # [Failed] -> postrm abort-upgrade <old-version>
+    ;;
+    abort-upgrade) # <- postrm failed-upgrade <new-version>
+        # `version` is new version
+        exit 0
+        # [Success] -> postrm abort-upgrade <old-version>
+        # [Failed] -> Exit with error
+    ;;
+esac
+
+
+
+

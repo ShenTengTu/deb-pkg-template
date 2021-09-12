@@ -1,0 +1,45 @@
+#! /bin/bash
+echo "[$(basename -- "$0")] $*"
+version=$2
+case "$1" in
+    configure) # <- preinst install [old-version]
+        if [ -n "$version" ]
+        then
+            # `version` is previously removed version
+            #  but configuration exists (not purged)
+            exit 0
+            # [Success] -> Exit (new version Installed)
+            # [Failed] ->  Exit with error
+        else
+            # The package has not been installed
+            exit 0
+            # [Success] -> Exit (Installed)
+            # [Failed] -> Exit with error
+        fi
+    ;;
+    abort-upgrade) # <- prerm failed-upgrade <old-version> || postrm abort-upgrade <old-version>
+        # `version` is new version
+        exit 0
+        # [Success] -> Exit with error
+        # [Failed] -> Exit with error
+    ;;
+    abort-remove) # <- prerm remove
+        if [ -n "$2" ] # abort removal of conflicting package
+        then
+            package=$3
+            version=$4
+        else # abort removal of package
+            exit 0
+        fi
+        # [Success] -> Exit with error
+        # [Failed] -> Exit with error
+    ;;
+    abort-deconfigure) # <- prerm deconfigure
+        # If `--auto-deconfigure` is specified, for each package to be deconfigured due to Breaks
+        [ -n "$2" ] && package=$3 && version=$4
+        # If any packages depended on a conflicting package being removed
+        [ -n "$5" ] && conflicting_package=$6 && conflicting_package_version=$7
+        # [Success] -> Exit with error
+        # [Failed] -> Exit with error
+    ;;
+esac
